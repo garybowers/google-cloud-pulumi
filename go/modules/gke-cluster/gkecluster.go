@@ -89,9 +89,9 @@ type GKENodePoolNodeConfig struct {
 	DiskType    pulumi.StringInput `pulumi:"disktype"`
 }
 
-func NewContainerNodePool(ctx *pulumi.Context, name string, args ContainerNodePoolArgs, opts pulumi.ResourceOption) (*ContainerNodePoolState, error) {
-	containerNodePool := &ContainerNodePoolState{}
-	err := ctx.RegisterComponentResource("pkg:google:gke-nodepool", name, containerNodePool, opts)
+func NewGKENodePool(ctx *pulumi.Context, name string, args GKENodePoolArgs, opts pulumi.ResourceOption) (*GKENodePoolState, error) {
+	gkeNodePool := &GKENodePoolState{}
+	err := ctx.RegisterComponentResource("pkg:google:gke-nodepool", name, gkeNodePool, opts)
 	if err != nil {
 		return nil, err
 	}
@@ -119,5 +119,5 @@ func NewContainerNodePool(ctx *pulumi.Context, name string, args ContainerNodePo
 	if err != nil {
 		return nil, err
 	}
-	return containerNodePool, nil
+	return gkeNodePool, nil
 }
