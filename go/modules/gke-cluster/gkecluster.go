@@ -16,6 +16,7 @@ package gkecluster
 
 import (
 	"fmt"
+	"reflect"
 
 	"github.com/pulumi/pulumi-gcp/sdk/v6/go/gcp/container"
 	"github.com/pulumi/pulumi-gcp/sdk/v6/go/gcp/serviceaccount"
@@ -42,8 +43,8 @@ type GKENetworkConfig struct {
 }
 
 func NewGKECluster(ctx *pulumi.Context, name string, args GKEArgs, opts pulumi.ResourceOption) (*GKEState, error) {
-	containerCluster := &GKEState{}
-	err := ctx.RegisterComponentResource("pkg:google:gke-cluster", name, containerCluster, opts)
+	gkeCluster := &GKEState{}
+	err := ctx.RegisterComponentResource("pkg:google:gke-cluster", name, gkeCluster, opts)
 	if err != nil {
 		return nil, err
 	}
@@ -60,9 +61,9 @@ func NewGKECluster(ctx *pulumi.Context, name string, args GKEArgs, opts pulumi.R
 		return nil, err
 	}
 
-	containerCluster.Name = gke.Name
-	containerCluster.Location = gke.Location
-	return containerCluster, nil
+	gkeCluster.Name = gke.Name
+	gkeCluster.Location = gke.Location
+	return gkeCluster, nil
 }
 
 /*
@@ -84,13 +85,16 @@ type GKENodePoolArgs struct {
 }
 
 type GKENodePoolNodeConfig struct {
-	MachineType pulumi.StringInput `pulumi:"machinetype"`
-	DiskSizeGb  pulumi.Int         `pulumi:"disksizegb"`
-	DiskType    pulumi.StringInput `pulumi:"disktype"`
+	MachineType pulumi.StringInput `pulumi:"machinetype" default:"e2-standard"`
+	DiskSizeGb  pulumi.Int         `pulumi:"disksizegb" default:100`
+	DiskType    pulumi.StringInput `pulumi:"disktype" default:"PD-BALANCED"`
 }
 
 func NewGKENodePool(ctx *pulumi.Context, name string, args GKENodePoolArgs, opts pulumi.ResourceOption) (*GKENodePoolState, error) {
 	gkeNodePool := &GKENodePoolState{}
+
+	SetDefaults(&GKENodePoolArgs)
+
 	err := ctx.RegisterComponentResource("pkg:google:gke-nodepool", name, gkeNodePool, opts)
 	if err != nil {
 		return nil, err
@@ -120,4 +124,16 @@ func NewGKENodePool(ctx *pulumi.Context, name string, args GKENodePoolArgs, opts
 		return nil, err
 	}
 	return gkeNodePool, nil
+}
+
+func SetDefaults(ptr interface{}) error {
+	v := reflect.ValueOf(ptr).Elem()
+	t := v.Type()
+	fmt.Println("BLAH!!!")
+
+	for i := 0; i < t.NumField(); i++ {
+		fmt.Println(v.Field(i))
+
+	}
+
 }

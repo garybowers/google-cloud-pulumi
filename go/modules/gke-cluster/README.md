@@ -22,7 +22,7 @@ func main() {
 			gke, err := gkecluster.NewContainerCluster(ctx, fmt.Sprintf("gke-%d", i), gkecluster.ContainerClusterArgs{
 				ProjectId: project.ProjectId,
 				Location:  pulumi.String(region),
-				NetConfig: gkecluster.ContainerClusterNetworkConfig{
+				NetConfig: gkecluster.GKENetworkConfig{
 					Network:    vpc.SelfLink,
 					SubNetwork: sn.SelfLink,
 				},
@@ -34,11 +34,11 @@ func main() {
 			fmt.Println(gke.Name)
 
 			// Creat the NodePools
-			_, err = gkecluster.NewContainerNodePool(ctx, fmt.Sprintf("gke-np-%d", i), gkecluster.ContainerNodePoolArgs{
+			_, err = gkecluster.NewGKENodePool(ctx, fmt.Sprintf("gke-np-%d", i), gkecluster.GKENodePoolArgs{
 				ProjectId: project.ProjectId,
 				Cluster:   gke.Name,
 				Location:  gke.Location,
-				NodeConfig: gkecluster.ContainerNodePoolNodeConfig{
+				NodeConfig: gkecluster.GKENodePoolNodeConfig{
 					DiskSizeGb: 100,
 				},
 			}, nil)
