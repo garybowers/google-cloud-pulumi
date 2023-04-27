@@ -16,7 +16,8 @@ package gkecluster
 
 import (
 	"fmt"
-	"reflect"
+
+	"github.com/google-cloud-pulumi/go/utils/defaulter"
 
 	"github.com/pulumi/pulumi-gcp/sdk/v6/go/gcp/container"
 	"github.com/pulumi/pulumi-gcp/sdk/v6/go/gcp/serviceaccount"
@@ -77,25 +78,35 @@ type GKENodePoolState struct {
 }
 
 type GKENodePoolArgs struct {
-	ProjectId  pulumi.StringInput          `pulumi:"projectId"`
-	Location   pulumi.StringInput          `pulumi:"location"`
-	Cluster    pulumi.StringInput          `pulumi:"cluster"`
-	Name       pulumi.StringInput          `pulumi:"name"`
-	NodeConfig ContainerNodePoolNodeConfig `pulumi:"nodeconfig"`
+	ProjectId  pulumi.StringInput    `pulumi:"projectId"`
+	Location   pulumi.StringInput    `pulumi:"location"`
+	Cluster    pulumi.StringInput    `pulumi:"cluster"`
+	Name       pulumi.StringInput    `pulumi:"name"`
+	NodeConfig GKENodePoolNodeConfig `pulumi:"nodeconfig"`
+	/*
+		NodeConfig struct {
+			MachineType pulumi.StringInput `pulumi:"machinetype" default:"e2-standard"`
+			DiskSizeGb  pulumi.Int         `pulumi:"disksizegb" default:100`
+			DiskType    pulumi.StringInput `pulumi:"disktype" default:"PD-BALANCED"`
+		}
+	*/
 }
 
 type GKENodePoolNodeConfig struct {
 	MachineType pulumi.StringInput `pulumi:"machinetype" default:"e2-standard"`
-	DiskSizeGb  pulumi.Int         `pulumi:"disksizegb" default:100`
-	DiskType    pulumi.StringInput `pulumi:"disktype" default:"PD-BALANCED"`
+	DiskSizeGb  pulumi.Int         `pulumi:"disksizegb" default:"90"`
+	DiskType    pulumi.StringInput `pulumi:"disktype" default:"PD-STANDARD"`
 }
 
 func NewGKENodePool(ctx *pulumi.Context, name string, args GKENodePoolArgs, opts pulumi.ResourceOption) (*GKENodePoolState, error) {
 	gkeNodePool := &GKENodePoolState{}
 
-	SetDefaults(&GKENodePoolArgs)
+	err := defaulter.SetDefaults(&args)
+	if err != nil {
+		return nil, err
+	}
 
-	err := ctx.RegisterComponentResource("pkg:google:gke-nodepool", name, gkeNodePool, opts)
+	err = ctx.RegisterComponentResource("pkg:google:gke-nodepool", name, gkeNodePool, opts)
 	if err != nil {
 		return nil, err
 	}
@@ -116,7 +127,7 @@ func NewGKENodePool(ctx *pulumi.Context, name string, args GKENodePoolArgs, opts
 		Name:     args.Name,
 		NodeConfig: &container.NodePoolNodeConfigArgs{
 			MachineType: args.NodeConfig.MachineType,
-			DiskSizeGb:  args.NodeConfig.DiskSizeGb,
+			DiskSizeGb:  args.NodeConfig.DiskSizeGb, // cannot be 0
 			DiskType:    args.NodeConfig.DiskType,
 		},
 	})
@@ -124,16 +135,4 @@ func NewGKENodePool(ctx *pulumi.Context, name string, args GKENodePoolArgs, opts
 		return nil, err
 	}
 	return gkeNodePool, nil
-}
-
-func SetDefaults(ptr interface{}) error {
-	v := reflect.ValueOf(ptr).Elem()
-	t := v.Type()
-	fmt.Println("BLAH!!!")
-
-	for i := 0; i < t.NumField(); i++ {
-		fmt.Println(v.Field(i))
-
-	}
-
 }
